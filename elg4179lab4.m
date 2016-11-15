@@ -1,6 +1,6 @@
 function elg4179lab4()
 	NUM_SNR_SAMPLES = 10;
-	NUM_BIT_SAMPLES = 10000;
+	NUM_BIT_SAMPLES = 1000000;
 
 	snrDB = linspace(10/NUM_SNR_SAMPLES,10,NUM_SNR_SAMPLES);
 	snr   = 10.^(snrDB./10);
@@ -127,6 +127,8 @@ function modulatedOutput = modulator(binaryData)
 end
 
 function modulatedOutput = symbolModulatorQPSK(symbolData)
+    modulatedOutput = zeros(1,length(symbolData));
+
 	for n=1:length(symbolData)
 		switch symbolData(n)
 			case 0
@@ -142,6 +144,8 @@ function modulatedOutput = symbolModulatorQPSK(symbolData)
 end
 
 function modulatedOutput = symbolModulator16QAM(symbolData)
+    modulatedOutput = zeros(1,length(symbolData));
+
 	for n=1:length(symbolData)
 		switch symbolData(n)
 			case 0
@@ -183,9 +187,11 @@ end
 %random noise source
 
 function modulatedSignalPlusNoise = noiseAddition(N0,modulatedSignal)
-	for n = 1:length(modulatedSignal)
+    noise = zeros(1,length(modulatedSignal));
+    
+    for n = 1:length(modulatedSignal)
 		noise(n) = sqrt(N0/2) * (randn()+j*randn());
-	end
+    end
 	
 	modulatedSignalPlusNoise = noise + modulatedSignal;
 end
@@ -202,7 +208,9 @@ end
 
 %find the minimum possible distance from a legitimate QAM codepoint, match to that codepoint
 function demodulatedSymbolOutput = demodulatorQPSK(modulatedSignalPlusNoise)
-	for n=1:length(modulatedSignalPlusNoise)
+    demodulatedSymbolOutput = zeros(1,length(modulatedSignalPlusNoise));
+
+    for n=1:length(modulatedSignalPlusNoise)
 		smallestDistance = 1000; %make this larger than the largest possible distance
 		for compareDigit=0:3
 			distance = abs(modulatedSignalPlusNoise(n)-symbolModulatorQPSK(compareDigit));
@@ -217,6 +225,8 @@ function demodulatedSymbolOutput = demodulatorQPSK(modulatedSignalPlusNoise)
 end
 
 function demodulatedSymbolOutput = demodulator16QAM(modulatedSignalPlusNoise)
+    demodulatedSymbolOutput = zeros(1,length(modulatedSignalPlusNoise));
+
 	for n=1:length(modulatedSignalPlusNoise)
 		smallestDistance = 1000; %make this larger than the largest possible distance
 		for compareDigit=0:15
@@ -249,7 +259,7 @@ end
 function errorRate = getSymbolErrorRateSymbol(originalInput,demodulatedOutput)
 	numErrors = 0;
 	for n=1:length(demodulatedOutput)
-		if originalInput(n)!=demodulatedOutput(n)
+		if originalInput(n)~=demodulatedOutput(n)
 			numErrors = numErrors+1;
 		end
 	end
@@ -260,7 +270,7 @@ end
 function errorRate = getBitErrorRateSymbol(numBits,originalInput,demodulatedOutput)
 	numErrors = 0;
 	for n=1:length(demodulatedOutput)
-		if originalInput(n)!=demodulatedOutput(n)
+		if originalInput(n)~=demodulatedOutput(n)
 			numErrors = numErrors + bitsInError(originalInput(n),demodulatedOutput(n));
 		end
 	end
@@ -271,7 +281,7 @@ end
 %we can then count the set bits
 function numErrorBits = bitsInError(originalSymbol,compareSymbol)
 	xorOut       = bitxor(originalSymbol,compareSymbol);
-	if xorOut!=0
+	if xorOut~=0
 		maxSetBit    = ceil(log2(xorOut+0.1));
 		numErrorBits = sum(bitget(xorOut,1:maxSetBit));
 	else
